@@ -3,7 +3,7 @@ var lineReader = require('readline').createInterface({
 });
 
 var userInput = {
-    vertexInit: function(vertexId) { return 10; }, // Initial pagerank score
+    vertexInit: function(vertexId) { return 1; }, // Initial pagerank score
     gatherFn: function(vertex, edge) { return edge.source.data / edge.source.outEdges.length;},
     sumFn: function(leftAccum, rightAccum) { return leftAccum + rightAccum;},
     applyFn: function (accum, vertex) { vertex.data = 0.15 + 0.85 * accum; },
@@ -74,7 +74,7 @@ Graph.prototype.doOneIteration = function () {
                 accum = userInput.gatherFn(vertex, gEdge);
                 first = false;
             } else {
-                accum = userInput.sum(accum, userInput.gatherFn(vertex, gEdge));
+                accum = userInput.sumFn(accum, userInput.gatherFn(vertex, gEdge));
             }
         }
         return accum;
@@ -98,17 +98,26 @@ Graph.prototype.doOneIteration = function () {
 graph = new Graph();
 
 lineReader.on('line', function(line) {
-    console.log(line);
-    var pair = line.split(" ").map(Number);
+    //console.log(line);
+    if (line[0] == "#") return;
+    var pair = line.split("\t").map(Number);
     var source = graph.getVertex(pair[0]);
     var target = graph.getVertex(pair[1]);
     var edge = new Edge(source, target); //No need to add the edge to the graph for now. But that will come.
 });
 
 lineReader.on('close', () => {
-    for (var i = 0; i < 200; i++) {
+    console.log("processing begins");
+    for (var i = 0; i < 25; i++) {
         graph.doOneIteration();
+        console.log(i);
     }
-        graph.concisePrint();
+    var sum = 0;
+    for (vertex of graph.vertices) {
+        if (!vertex) continue;
+        sum += vertex.data;
+    }
+    console.log(sum);
+    //    graph.concisePrint();
     //console.log(graph.vertices);
 });
